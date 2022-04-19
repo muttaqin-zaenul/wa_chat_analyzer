@@ -74,7 +74,7 @@ if uploaded_file is not None:
         most_common_df = helper.most_common_words(selected_user, df)
         fig, ax = plt.subplots()
         ax.bar(most_common_df['frekuensi'], most_common_df['word'], color='red')
-        ax.invert_yaxis()
+#         ax.invert_yaxis()
         plt.xticks(rotation='vertical')
         st.pyplot(fig)
         
