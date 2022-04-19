@@ -1,6 +1,7 @@
 import streamlit as st
 import preprocessor, helper
 import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 
 
 st.sidebar.title('WhatsApp Chat Analyzer')
@@ -61,6 +62,7 @@ if uploaded_file is not None:
                 st.dataframe(new_df)
 
         st.title("=============================================")
+        st.title("Wordcloud")
         df_wc = helper.create_wordcloud(selected_user, df)
         fig, ax = plt.subplots()
         ax.imshow(df_wc)
@@ -74,9 +76,19 @@ if uploaded_file is not None:
         ax.barh(most_common_df['word'], most_common_df['frekuensi'], color='red')
         ax.invert_yaxis()
         plt.xticks(rotation='vertical')
-        st.title("Wordcloud")
+
+
+        # fig = go.Figure(go.Bar(
+        #     y=most_common_df['word'],
+        #     x=most_common_df['frekuensi'],
+        #     orientation='h'))
+
         st.pyplot(fig)
         st.title("=============================================")
+
+
+
+
 
 
 
