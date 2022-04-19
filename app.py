@@ -72,19 +72,19 @@ if uploaded_file is not None:
         st.title("=============================================")
         st.title("Most frequently words")
         most_common_df = helper.most_common_words(selected_user, df)
-        # fig, ax = plt.subplots()
-        # ax.barh(most_common_df['word'], most_common_df['frekuensi'], color='red')
-        # ax.invert_yaxis()
-        # plt.xticks(rotation='vertical')
-        # st.pyplot(fig)
-        #
+        fig, ax = plt.subplots()
+        ax.bar(most_common_df['word'], most_common_df['frekuensi'], color='red')
+        ax.invert_yaxis()
+        plt.xticks(rotation='vertical')
+        st.pyplot(fig)
+        
 
-        fig = go.Figure(go.Bar(
-            y=most_common_df['word'],
-            x=most_common_df['frekuensi'],
-            orientation='h'))
+#         fig = go.Figure(go.Bar(
+#             y=most_common_df['word'],
+#             x=most_common_df['frekuensi'],
+#             orientation='h'))
 
-        st.plotly_chart(fig)
+#         st.plotly_chart(fig)
 
 
         st.title("=============================================")
