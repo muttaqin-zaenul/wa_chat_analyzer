@@ -1,7 +1,7 @@
 import pandas as pd
 from urlextract import URLExtract
 from wordcloud import WordCloud
-from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory, StopWordRemover, ArrayDictionary
 from collections import Counter
 import emoji
 import re
@@ -12,14 +12,29 @@ extractor = URLExtract()
 stopwords_from_sastawi = StopWordRemoverFactory().get_stop_words()
 more_stopword = ['1.', '2.', '3.', '4.', '5.', '6.', '7.', '8.', '9.', '10.',
                  'yg', 'mas', 'bang', '-', 'terima', 'kasih', 'aja', 'ga', 'rekan', 'https', 'terimakasih', 'bang',
-                 'nggak', 'gak', 'bapak', 'ibu', 'https ', ' https', 'selamat', 'us', 'go', 'id',]
+                 'nggak', 'gak', 'bapak', 'ibu', 'selamat', 'us', 'go', 'id',
+                 'was', 'deleted', 'yuk', 'kalo', 'message', 'makasih', 'this', 'udah', 'klo', 'iya', 'biar', 'gaes',
+                 'makace', 'besok', 'semoga', 'nih', 'udh', 'pake', 'mba', 'eh', 'om', ]
 stopword = stopwords_from_sastawi + more_stopword
+stopworder = StopWordRemover(ArrayDictionary(stopword))
+
+def stopwords_clean(singledata_seriez):
+    singledata_seriez = str(singledata_seriez)
+    singledata_seriez = stopworder.remove(singledata_seriez)
+    return singledata_seriez
+
+# def remove_stopwords(message):
+#     y = []
+#     for word in message.lower().split():
+#         if word not in stopword:
+#             y.append(word)
+#     return " ".join(y)
 
 
 def clean_dataframe(dataframe):
     dataframe = re.sub(r'\b\d+\b', ' ', dataframe)
-    dataframe = re.sub('[.]', ' ', dataframe)
-    dataframe = re.sub('[@,*]', ' ', dataframe)
+    dataframe = re.sub('[.@,*_/(/)//=]', ' ', dataframe)
+    # dataframe = re.sub('[@,*]', ' ', dataframe)
     # dataframe = re.sub('<[^<]+?>', '', dataframe)
     # dataframe = re.sub('-\s+', '', dataframe)
     # dataframe = re.sub('[\(\)-]', '', dataframe)
@@ -29,8 +44,6 @@ def clean_dataframe(dataframe):
 def fetch_stats(selected_user, df):
     if selected_user != 'Overall':
         df = df[df['user'] == selected_user]
-
-    df_user = df
 
     num_messages = df.shape[0]
     words = []
@@ -45,7 +58,7 @@ def fetch_stats(selected_user, df):
         links.extend(extractor.find_urls(message))
     num_links = len(links)
 
-    return num_messages, num_words, num_media_messages, num_links, df_user
+    return num_messages, num_words, num_media_messages, num_links
 
 
 def most_busy_user(df):
@@ -60,18 +73,9 @@ def create_wordcloud(selected_user, df):
 
     temp = df[df['user'] != "group_notification"]
     temp = temp[temp['message'] != "<Media omitted>\n"]
-    temp['message'] = temp['message'].apply(clean_dataframe)
-
-    def remove_stopwords(message):
-        y = []
-        for word in message.lower().split():
-            if word not in stopword:
-                y.append(word)
-        return " ".join(y)
-
-    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white')
-
-    temp['message'] = temp['message'].apply(remove_stopwords)
+    temp['message'] = temp['message'].str.lower().apply(clean_dataframe).apply(stopwords_clean)
+    # temp['message'] = temp['message'].apply(remove_stopwords)
+    wc = WordCloud(width=500, height=500, min_font_size=10, background_color='white', stopwords=stopword)
     df_wc = wc.generate(temp['message'].str.cat(sep=" "))
 
     return df_wc
@@ -83,15 +87,21 @@ def most_common_words(selected_user, df):
 
     temp = df[df['user'] != "group_notification"]
     temp = temp[temp['message'] != "<Media omitted>\n"]
+    temp['message'] = temp['message'].str.lower()
     temp['message'] = temp['message'].apply(clean_dataframe)
+
+    emojis = []
+    for message in df['message']:
+        emojis.extend([c for c in message if c in emoji.UNICODE_EMOJI['en']])
 
     words = []
     for message in temp['message']:
-        for word in message.lower().split():
-            if word not in stopword:
+        for word in message.split():
+            if (word not in stopword) and (word not in emojis):
                 words.append(word)
 
-    most_common_df = pd.DataFrame(Counter(words).most_common(20), columns={'word', 'frekuensi'})
+    most_common_df = pd.DataFrame(Counter(words).most_common(20))
+    most_common_df.rename(columns={0: 'word', 1: 'frekuensi'}, inplace=True)
 
     return most_common_df
 
@@ -104,8 +114,8 @@ def emoji_func(selected_user, df):
     for message in df['message']:
         emojis.extend([c for c in message if c in emoji.UNICODE_EMOJI['en']])
 
-    most_emoji_df = pd.DataFrame(Counter(emojis).most_common(len(Counter(emojis))), columns={'emoji', 'frekuensi'})
-    # most_emoji_df['percent'] = (most_emoji_df['frekuensi'].values * 100)/most_emoji_df['frekuensi'].sum()
+    most_emoji_df = pd.DataFrame(Counter(emojis).most_common(len(Counter(emojis))))
+    most_emoji_df  = most_emoji_df.rename(columns={0: 'emoji', 1: 'frekuensi'})
 
     return most_emoji_df
 
