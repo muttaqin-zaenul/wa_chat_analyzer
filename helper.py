@@ -33,7 +33,7 @@ def stopwords_clean(singledata_seriez):
 
 def clean_dataframe(dataframe):
     dataframe = re.sub(r'\b\d+\b', ' ', dataframe)
-    dataframe = re.sub('[.@,*_/(/)//=]', ' ', dataframe)
+    dataframe = re.sub('[.@,*_/(/)//=:]', ' ', dataframe)
     # dataframe = re.sub('[@,*]', ' ', dataframe)
     # dataframe = re.sub('<[^<]+?>', '', dataframe)
     # dataframe = re.sub('-\s+', '', dataframe)
