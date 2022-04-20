@@ -62,6 +62,7 @@ def fetch_stats(selected_user, df):
 
 
 def most_busy_user(df):
+    df = df[df['user'] != 'group_notification']
     x = df['user'].value_counts().head(10)
     df = round((df['user'].value_counts()/df.shape[0])*100).reset_index().rename(columns={'index':'name', 'user':'percent'})
     return x, df
