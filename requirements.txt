@@ -100,3 +100,4 @@ wordcloud==1.8.1
 zipp==3.8.0
 plotly
 emoji
+seaborn
